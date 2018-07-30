@@ -1,0 +1,34 @@
+library(hyperSpec)
+
+exps <- list.dirs("./data")
+i = 5
+
+
+spectral_results <- read.csv(paste(exps[i],"/spectral_results.csv", sep=""), header = FALSE)
+
+reference <- read.csv(paste(exps[i],"/reference.csv", sep=""), header = FALSE)
+dark_reference <- read.csv(paste(exps[i],"/dark_reference.csv", sep=""), header = FALSE)
+wl <- read.csv(paste(exps[i],"/wl.csv", sep=""), header = FALSE)
+
+spc <- new("hyperSpec", spc = spectral_results[-1,], 
+           wavelength = as.numeric(as.matrix(wl)))
+
+plot(spc)
+
+dark_corrected <- sweep(spc, 2, as.matrix(dark_reference), "-")
+
+plot(dark_corrected)
+
+corrected <- sweep(dark_corrected,2,as.matrix(reference), "/")
+
+plot(corrected)
+
+smoothed <- spc.smooth.spline(corrected)
+
+plot(smoothed)
+
+
+plot(1:39, smoothed[[,,350]])
+lines(1:39, smoothed[[,,350]])
+
+

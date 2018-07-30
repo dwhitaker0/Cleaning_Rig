@@ -1,0 +1,37 @@
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load("hyperSpec", "gtools", "RColorBrewer", "pls")
+
+####### This code block will navigate to the directory specified and import all the .txt files there #####
+####### project directory is ./ so place txt files in folder ./Data/xxxx and change first line to reflect
+####### when returning to root dir "../" moves up one layer, here we moved two layers in Data, and xxxx so "../../" is needed
+setwd("./old/OceanView_Test/")  
+filelist <- mixedsort(list.files(pattern = "*.txt"))  #List all files in currentwd
+buffer <- matrix (scan(filelist [1], skip=15), ncol = 2, byrow = TRUE) #Read first file into buffer, 14 rows are skipped this is the header with acquissiton info
+wavelength <- buffer [,1] #create wavelength vector
+spcdata <- matrix (ncol = nrow(buffer), nrow = length(filelist)) #preallocate data matrix
+spcdata [1,] <- buffer[,2] #read in first spectrum
+for (f in seq(along = filelist)[-1]){
+  buffer <- matrix (scan(filelist [f], quiet = TRUE, skip = 15), ncol =2, byrow = TRUE)
+  spcdata[f,] <- buffer [,2]
+}
+
+rm(f,buffer)
+cat (length(filelist), "files imported.") 
+cat (" Wavelength range =", wavelength[1], "-", (wavelength[1]+(length(wavelength)-1)))
+setwd("../../") #Return to Root Dir
+####################
+
+#######This puts the spectra together in a single object##########
+spc <- new("hyperSpec", spc = spcdata, wavelength = wavelength)
+
+plot(spc, spc.nmax= 200)
+
+baselines <- spc.fit.poly.below(spc)
+bld <- spc - baselines
+plot(bld, spc.nmax = 200)
+
+plot(t, bld[[,,247]], xlab = "Time", 
+     ylab = expression (I ["247 nm"] / a.u.), pch = 4)
+lines(t, bld[[,,247]], col = 3)
+
+
