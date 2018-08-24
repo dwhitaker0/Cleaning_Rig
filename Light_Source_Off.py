@@ -1,6 +1,6 @@
 from Machines import Numato_Control as Numato
 
-Light_Source = Numato.UVLightSource("COM10")
+Light_Source = Numato.UVLightSource("COM9")
 
-Light.Source.halogen_off()
-Light.Source.deuterium_off()
+Light_Source.halogen_off()
+Light_Source.deuterium_off()

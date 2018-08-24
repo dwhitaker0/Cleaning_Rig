@@ -9,6 +9,7 @@ import os
 import sys
 import numpy as np
 import pandas as p
+import datetime
 
 
 import pyqtgraph as pg
@@ -37,7 +38,9 @@ cam_thread = threading.Thread(name = "Camera", target = Camera.start_video)
 log_formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
 
 #File to log to
-logFile = os.path.join(experiment_name) + "/logfile.txt"
+today = datetime.date.today()
+todaystr = today.isoformat()
+logFile =  "./data/" + todaystr + "_logfile.txt"
 
 #Setup File handler
 file_handler = logging.FileHandler(logFile)
@@ -63,7 +66,7 @@ logger.addHandler(stream_handler)
 #################
 
 #Pump
-Pump = WM.pump_530du("COM8")
+Pump = WM.pump_530du("COM3")
 logging.info("Connected to Pump")
 
 #Spectrometer
@@ -72,7 +75,7 @@ spec = sb.Spectrometer(specdevs[0])
 logging.info("Connected to: " + str(specdevs[0]))
 
 #Light_Source
-light_source = Numato.UVLightSource("COM10")
+Light_Source = Numato.UVLightSource("COM9")
 
 ##################
 ##Connect to Database##
@@ -125,7 +128,7 @@ def start_dark_reference():
 	Light_Source.shutter_close()
 	time.sleep(2)
 	dark_ref = spec.intensities()
-	Light_Source.shutter.open()
+	Light_Source.shutter_open()
 
 
 def start_reference():
@@ -147,7 +150,7 @@ def start_experiment():
 	global refd_spectral_data
 	global start_time
 	global spec_time
-	global lambda_max
+	#global lambda_max
 
 	wl = spec.wavelengths()
 	raw_spectral_data = spec.wavelengths()
@@ -161,30 +164,30 @@ def start_experiment():
 	Pump.start()
 	
 	
-	#set-up plot
+	# #set-up plot
 	
-	#QtGui.QApplication.setGraphicsSystem('raster')
-	app = QtGui.QApplication([])
-	mw = QtGui.QMainWindow()
-	mw.setWindowTitle('Spectral Data')
-	mw.resize(1200,600)
-	cw = QtGui.QWidget()
-	mw.setCentralWidget(cw)
-	l = QtGui.QVBoxLayout()
-	cw.setLayout(l)
+	# #QtGui.QApplication.setGraphicsSystem('raster')
+	# app = QtGui.QApplication([])
+	# mw = QtGui.QMainWindow()
+	# mw.setWindowTitle('Spectral Data')
+	# mw.resize(1200,600)
+	# cw = QtGui.QWidget()
+	# mw.setCentralWidget(cw)
+	# l = QtGui.QVBoxLayout()
+	# cw.setLayout(l)
 
-	pw = pg.PlotWidget(name='UV Spectrum')  ## giving the plots names allows us to link their axes together
-	l.addWidget(pw)
-	#pw2 = pg.PlotWidget(name='Zero Distance')
-	#l.addWidget(pw2)
+	# pw = pg.PlotWidget(name='UV Spectrum')  ## giving the plots names allows us to link their axes together
+	# l.addWidget(pw)
+	# #pw2 = pg.PlotWidget(name='Zero Distance')
+	# #l.addWidget(pw2)
 
-	mw.show()
-	## Create an empty plot curve to be filled later, set its pen
-	p1 = pw.plot(pen=2)
-	pw.enableAutoRange(enable=True)
-	pw.setYRange(-2,2,padding=0)
-	p2 = pw2.plot(pen=2)
-	pw2.enableAutoRange(enable=True)
+	# mw.show()
+	# ## Create an empty plot curve to be filled later, set its pen
+	# p1 = pw.plot(pen=2)
+	# pw.enableAutoRange(enable=True)
+	# pw.setYRange(-2,2,padding=0)
+	#p2 = pw2.plot(pen=2)
+	#pw2.enableAutoRange(enable=True)
 		
 	while (float(time.time()) < start_time+float(experiment_time)):
 		spectrum = spec.intensities()
@@ -192,20 +195,20 @@ def start_experiment():
 		raw_spectral_data = np.vstack((raw_spectral_data, spectrum))
 		Abs_spectral_data = np.vstack((Abs_spectral_data, np.log10((reference - dark_ref)/(spectrum - dark_ref))))
 		spec_time =  np.array([spec_time, sp_time])
-		curr_lambda_max = np.amax(Abs_spectral_data)
-		lambda_max = np.array([lambda_max, curr_lambda_max])
+		#curr_lambda_max = np.amax(Abs_spectral_data)
+		#lambda_max = np.array([lambda_max, curr_lambda_max])
 		
 		#Update Plot
 		#plot
-		p1.setData(wl,Abs_spectral_data)
-		p2.setData(spec_time, lambda_max)
-		pg.QtGui.QApplication.processEvents()
+		#p1.setData(wl,np.log10((reference - dark_ref)/(spectrum - dark_ref)))
+		#p2.setData(spec_time, lambda_max)
+		#pg.QtGui.QApplication.processEvents()
 		
-		time.sleep((spectral_int_time/10000)+0.3)
+		#time.sleep((spectral_int_time/10000)+0.3)
 		
 	logger.info("Experiment complete at: " + time.strftime("%H:%M:%S | %d-%m-%Y"))
 	Pump.stop()
-	plt.close(fig)
+	#plt.close(fig)
 	Camera.video_rec = 0
 	final_data = raw_spectral_data
 	final_Abs = Abs_spectral_data
@@ -238,6 +241,9 @@ def start_experiment():
 Exps = p.read_csv("./Parameters.csv")
 
 input("Insert Blank Coupon")
+spectral_int_time = float(Exps.iloc[0, 3])
+spectral_int_time = float(spectral_int_time * 1000000)
+pump_speed = Exps.iloc[0, 1]
 start_dark_reference()
 time.sleep(2)
 start_reference()
@@ -249,14 +255,17 @@ for i in range (0, Exps.shape[0]):
 	
 		global experiment_name
 		stored_exeption = None
-		experiment_name  = Exps.iloc[i, 0]
+		Exp_Name  = Exps.iloc[i, 0]
+		experiment_name = Exp_Name
+		experiment_name = "./data/" + todaystr + "/" + experiment_name
 		pump_speed = Exps.iloc[i, 1]
-		experiment_time = Exps.iloc[i, 2]
+		experiment_time = float(Exps.iloc[i, 2])
 		experiment_time = float(experiment_time * 60)
-		spectral_int_time = Exps.iloc[i, 3]
+		spectral_int_time = float(Exps.iloc[i, 3])
+		spectral_int_time = float(spectral_int_time * 1000000)
 		Camera.path = experiment_name
-		print (Exp_Name, Pump_Speed, Run_Time, Spec_Time)
-		logger.info (Exp_Name, Pump_Speed, Run_Time, Spec_Time + "@" + time.strftime("%H:%M:%S | %d-%m-%Y"))
+		print (Exp_Name,pump_speed, experiment_time, spectral_int_time)
+		logger.info (Exp_Name + "@" + time.strftime("%H:%M:%S | %d-%m-%Y"))
 
 		#create directory
 
@@ -270,7 +279,7 @@ for i in range (0, Exps.shape[0]):
 		else:
 			os.makedirs(experiment_name)
 
-		cam_thread.start() ##Can be stopped with: Camera.video_rec = 0
+		#cam_thread.start() ##Can be stopped with: Camera.video_rec = 0
 		input("Place coupon to be tested in holder and push enter . . .")
 		start_experiment()
 		
