@@ -202,7 +202,7 @@ def start_experiment():
 		#p2.setData(spec_time, lambda_max)
 		pg.QtGui.QApplication.processEvents()
 
-		time.sleep((spectral_int_time/10000)+0.3)
+		time.sleep((spectral_int_time/1000000)+0.05)
 
 	logger.info("Experiment complete at: " + time.strftime("%H:%M:%S | %d-%m-%Y"))
 	Pump.stop()
