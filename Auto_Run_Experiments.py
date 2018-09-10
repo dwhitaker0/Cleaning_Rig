@@ -279,7 +279,8 @@ for i in range (0, Exps.shape[0]):
 
 		#cam_thread.start() ##Can be stopped with: Camera.video_rec = 0
 		input("Place coupon to be tested in holder and push enter . . .")
-		subprocess.call(["python", "./Machines/Camera_ext.py", "-p",  experiment_name, "-l",  video_time])
+		subprocess.Popen(["python", "./Machines/Camera_ext.py", "-p",  experiment_name, "-l",  video_time])
+		time.sleep(1)
 		start_experiment()
 
 		if stored_exeption:
