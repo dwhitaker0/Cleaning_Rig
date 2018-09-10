@@ -197,7 +197,7 @@ def start_experiment():
 		#lambda_max = np.array([lambda_max, curr_lambda_max])
 
 		#Update Plot
-		
+
 		p1.setData(wl,np.log10((reference - dark_ref)/(spectrum - dark_ref)))
 		#p2.setData(spec_time, lambda_max)
 		pg.QtGui.QApplication.processEvents()
@@ -258,7 +258,7 @@ for i in range (0, Exps.shape[0]):
 		pump_speed = Exps.iloc[i, 1]
 		experiment_time = float(Exps.iloc[i, 2])
 		experiment_time = float(experiment_time * 60)
-		video_time = float(experiment_time + 2)
+		video_time = str(float(experiment_time + 2))
 		spectral_int_time = float(Exps.iloc[i, 3])
 		spectral_int_time = float(spectral_int_time * 1000000)
 		Camera.path = experiment_name
@@ -279,7 +279,7 @@ for i in range (0, Exps.shape[0]):
 
 		#cam_thread.start() ##Can be stopped with: Camera.video_rec = 0
 		input("Place coupon to be tested in holder and push enter . . .")
-		subprocess.call(["python", "./Machines/Camera_ext.py", "-p",  experiment_name ,  " -l " ,  str(video_time)])
+		subprocess.call(["python", "./Machines/Camera_ext.py", "-p",  experiment_name, "-l",  video_time])
 		start_experiment()
 
 		if stored_exeption:
