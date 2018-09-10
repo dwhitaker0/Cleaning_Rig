@@ -10,7 +10,6 @@ import sys
 import numpy as np
 import pandas as p
 import datetime
-import subprocess
 
 
 import pyqtgraph as pg
@@ -31,6 +30,7 @@ import serial
 ##define threads## :: The camera is run as a seperate thread to allow the interpreter to continue
 #############
 cam_thread = threading.Thread(name = "Camera", target = Camera.start_video)
+cam_thread.daemon = True
 
 #############
 ##Set up logging##
@@ -118,30 +118,6 @@ Light_Source = Numato.UVLightSource("COM9")
 #cursor.execute('UPDATE Experiments SET Status = ? WHERE Experiment_ID = ?', (status, experiment_ID))
 #db.commit()
 
-#set-up plot
-
-#QtGui.QApplication.setGraphicsSystem('raster')
-app = QtGui.QApplication([])
-mw = QtGui.QMainWindow()
-mw.setWindowTitle('Spectral Data')
-mw.resize(1200,600)
-cw = QtGui.QWidget()
-mw.setCentralWidget(cw)
-l = QtGui.QVBoxLayout()
-cw.setLayout(l)
-
-pw = pg.PlotWidget(name='UV Spectrum')  ## giving the plots names allows us to link their axes together
-l.addWidget(pw)
-#pw2 = pg.PlotWidget(name='Zero Distance')
-#l.addWidget(pw2)
-
-mw.show()
-## Create an empty plot curve to be filled later, set its pen
-p1 = pw.plot(pen=2)
-pw.enableAutoRange(enable=True)
-pw.setYRange(-2,2,padding=0)
-p2 = pw2.plot(pen=2)
-pw2.enableAutoRange(enable=True)
 
 ###########
 ## Functions ##
@@ -167,6 +143,8 @@ def start_reference():
 	Pump.stop()
 
 
+
+
 def start_experiment():
 	global wl
 	global raw_spectral_data
@@ -187,26 +165,52 @@ def start_experiment():
 	Pump.start()
 
 
+	# #set-up plot
+
+	# #QtGui.QApplication.setGraphicsSystem('raster')
+	# app = QtGui.QApplication([])
+	# mw = QtGui.QMainWindow()
+	# mw.setWindowTitle('Spectral Data')
+	# mw.resize(1200,600)
+	# cw = QtGui.QWidget()
+	# mw.setCentralWidget(cw)
+	# l = QtGui.QVBoxLayout()
+	# cw.setLayout(l)
+
+	# pw = pg.PlotWidget(name='UV Spectrum')  ## giving the plots names allows us to link their axes together
+	# l.addWidget(pw)
+	# #pw2 = pg.PlotWidget(name='Zero Distance')
+	# #l.addWidget(pw2)
+
+	# mw.show()
+	# ## Create an empty plot curve to be filled later, set its pen
+	# p1 = pw.plot(pen=2)
+	# pw.enableAutoRange(enable=True)
+	# pw.setYRange(-2,2,padding=0)
+	#p2 = pw2.plot(pen=2)
+	#pw2.enableAutoRange(enable=True)
+
 	while (float(time.time()) < start_time+float(experiment_time)):
 		spectrum = spec.intensities()
 		sp_time = time.strftime("%H:%M:%S %d-%m-%Y")
 		raw_spectral_data = np.vstack((raw_spectral_data, spectrum))
 		Abs_spectral_data = np.vstack((Abs_spectral_data, np.log10((reference - dark_ref)/(spectrum - dark_ref))))
 		spec_time =  np.array([spec_time, sp_time])
-		curr_lambda_max = np.amax(Abs_spectral_data)
-		lambda_max = np.array([lambda_max, curr_lambda_max])
+		#curr_lambda_max = np.amax(Abs_spectral_data)
+		#lambda_max = np.array([lambda_max, curr_lambda_max])
 
-		Update Plot
-		plot
-		p1.setData(wl,np.log10((reference - dark_ref)/(spectrum - dark_ref)))
-		p2.setData(spec_time, lambda_max)
-		pg.QtGui.QApplication.processEvents()
+		#Update Plot
+		#plot
+		#p1.setData(wl,np.log10((reference - dark_ref)/(spectrum - dark_ref)))
+		#p2.setData(spec_time, lambda_max)
+		#pg.QtGui.QApplication.processEvents()
 
-		time.sleep((spectral_int_time/10000)+0.3)
+		#time.sleep((spectral_int_time/10000)+0.3)
 
 	logger.info("Experiment complete at: " + time.strftime("%H:%M:%S | %d-%m-%Y"))
 	Pump.stop()
 	#plt.close(fig)
+	Camera.video_rec = 0
 	final_data = raw_spectral_data
 	final_Abs = Abs_spectral_data
 	Where_Nan = np.isnan(Abs_spectral_data)
@@ -258,7 +262,6 @@ for i in range (0, Exps.shape[0]):
 		pump_speed = Exps.iloc[i, 1]
 		experiment_time = float(Exps.iloc[i, 2])
 		experiment_time = float(experiment_time * 60)
-		video_time = flaot(experiment_time + 2)
 		spectral_int_time = float(Exps.iloc[i, 3])
 		spectral_int_time = float(spectral_int_time * 1000000)
 		Camera.path = experiment_name
@@ -279,7 +282,6 @@ for i in range (0, Exps.shape[0]):
 
 		#cam_thread.start() ##Can be stopped with: Camera.video_rec = 0
 		input("Place coupon to be tested in holder and push enter . . .")
-		subprocess.call(["python", "./Machines/Camera_Ext.py -p " + experiment_name + "-l " + video_time])
 		start_experiment()
 
 		if stored_exeption:

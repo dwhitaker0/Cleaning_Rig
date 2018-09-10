@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import os
+import sys
 
 video_rec = 1
 path = "/"
@@ -28,3 +29,5 @@ def start_video():
 	cap.release()
 	out.release()
 	cv2.destroyAllWindows()
+
+	sys.exit()
