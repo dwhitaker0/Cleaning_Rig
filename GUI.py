@@ -2,9 +2,12 @@ import tkinter as tk
 from Machines import Numato_Control as Numato
 import subprocess as sb
 from Machines import Header as H
+import pandas as p
+
+config = p.read_csv("config.txt", sep = "=", header = None)
 
 
-Light_Source = Numato.UVLightSource("COM11")
+Light_Source = Numato.UVLightSource(str(config.iloc[1,1]))
 
 def Light_On():
     Light_Source.halogen_on()
@@ -15,7 +18,7 @@ def Light_Off():
     Light_Source.deuterium_off()
 
 def Run_Experiment():
-    subprocess.call(["python", "Auto_Run_Experiments.py"])
+    sb.call(["python", "Auto_Run_Experiments.py"])
 
 
 
