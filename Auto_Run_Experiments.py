@@ -27,6 +27,10 @@ from Machines import Numato_Control as Numato
 import seabreeze.spectrometers as sb
 import serial
 
+##Read Config File
+
+config = p.read_csv("config.txt", sep = "=", header = None)
+
 #############
 ##define threads## :: The camera is run as a seperate thread to allow the interpreter to continue
 #############
@@ -67,7 +71,7 @@ logger.addHandler(stream_handler)
 #################
 
 #Pump
-Pump = WM.pump_530du("COM3")
+Pump = WM.pump_530du(config.iloc[0,1])
 logging.info("Connected to Pump")
 
 #Spectrometer
@@ -76,7 +80,7 @@ spec = sb.Spectrometer(specdevs[0])
 logging.info("Connected to: " + str(specdevs[0]))
 
 #Light_Source
-Light_Source = Numato.UVLightSource("COM11")
+Light_Source = Numato.UVLightSource(config.iloc[1,1])
 
 ##################
 ##Connect to Database##
@@ -220,6 +224,7 @@ def start_experiment():
 	np.savetxt(os.path.join(experiment_name) + "/wl.csv", wl, fmt="%s", delimiter=",")
 	np.savetxt(os.path.join(experiment_name) + "/times.csv", spec_time, fmt="%s", delimiter=",")
 	logger.info("Spectral data saved as: " + os.path.join(experiment_name) + "/spectral_results.csv")
+	time.sleep(10)
 
 
 
