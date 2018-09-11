@@ -21,7 +21,7 @@ from PySide import QtCore
 ##import machine modules##
 ####################
 
-from Machines import Camera
+#from Machines import Camera
 from Machines import Watson_Marlow as WM
 from Machines import Numato_Control as Numato
 import seabreeze.spectrometers as sb

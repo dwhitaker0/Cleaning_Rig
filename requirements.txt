@@ -1,0 +1,7 @@
+numpy==1.11.1+mkl
+opencv_python==3.3.0.10
+seabreeze==0.5.3
+pandas==0.20.3
+PySide==1.2.4
+pyqtgraph==0.10.0
+pyserial==3.4
