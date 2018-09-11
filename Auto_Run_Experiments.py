@@ -71,7 +71,7 @@ logger.addHandler(stream_handler)
 #################
 
 #Pump
-Pump = WM.pump_530du(config.iloc[0,1])
+Pump = WM.pump_530du(config.iloc[0,1].strip())
 logging.info("Connected to Pump")
 
 #Spectrometer
@@ -80,7 +80,7 @@ spec = sb.Spectrometer(specdevs[0])
 logging.info("Connected to: " + str(specdevs[0]))
 
 #Light_Source
-Light_Source = Numato.UVLightSource(config.iloc[1,1])
+Light_Source = Numato.UVLightSource(config.iloc[1,1].strip())
 
 ##################
 ##Connect to Database##

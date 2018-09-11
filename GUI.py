@@ -7,7 +7,7 @@ import pandas as p
 config = p.read_csv("config.txt", sep = "=", header = None)
 
 
-Light_Source = Numato.UVLightSource(str(config.iloc[1,1]))
+Light_Source = Numato.UVLightSource(config.iloc[1,1].strip())
 
 def Light_On():
     Light_Source.halogen_on()

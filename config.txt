@@ -1,2 +1,2 @@
-Pump = "COM3"
-Light_Source = "COM11"
+Pump = COM3
+Light_Source = COM11
